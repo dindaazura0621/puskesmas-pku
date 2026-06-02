@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebGIS Sebaran Puskesmas Kota Pekanbaru</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+    --navy:#062b5f;
+    --blue:#0b4ea2;
+    --gold:#d4af37;
+    --bg:#f4f7fb;
+    --card:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+}
+
+body.dark{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --text:#f8fafc;
+    --muted:#cbd5e1;
+    --navy:#020617;
+    --blue:#111827;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',Arial,sans-serif;
+}
+
+html{scroll-behavior:smooth;}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+}
+
+header{
+    background:linear-gradient(90deg,var(--navy),var(--blue));
+    border-bottom:4px solid var(--gold);
+    padding:15px 7%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:1000;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:white;
+    font-weight:700;
+    font-size:22px;
+}
+
+.logo img{
+    width:42px;
+    height:42px;
+    object-fit:contain;
+    background:white;
+    padding:5px;
+    border-radius:50%;
+}
+
+.logo span{color:var(--gold);}
+
+nav a{
+    color:white;
+    text-decoration:none;
+    margin-left:18px;
+    font-weight:500;
+}
+
+nav a:hover{color:var(--gold);}
+
+.mode-btn{
+    background:var(--gold);
+    color:#062b5f;
+    border:none;
+    padding:9px 14px;
+    border-radius:20px;
+    font-weight:700;
+    cursor:pointer;
+    margin-left:12px;
+}
+
+.hero{
+    background:
+    linear-gradient(rgba(6,43,95,.88),rgba(6,43,95,.88)),
+    url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=1600');
+    background-size:cover;
+    background-position:center;
+    color:white;
+    text-align:center;
+    padding:95px 9%;
+}
+
+.badge{
+    display:inline-block;
+    border:1px solid var(--gold);
+    color:#ffe8a3;
+    padding:8px 20px;
+    border-radius:30px;
+    margin-bottom:20px;
+    background:rgba(212,175,55,.15);
+}
+
+.hero h1{
+    font-size:46px;
+    margin-bottom:16px;
+}
+
+.hero p{
+    max-width:850px;
+    margin:auto;
+    line-height:1.8;
+    font-size:18px;
+}
+
+.clock{
+    margin-top:14px;
+    color:#ffe8a3;
+    font-weight:600;
+}
+
+.btn{
+    display:inline-block;
+    background:var(--gold);
+    color:#062b5f;
+    padding:13px 26px;
+    border-radius:30px;
+    text-decoration:none;
+    font-weight:700;
+    margin-top:25px;
+}
+
+.section{
+    padding:65px 8%;
+}
+
+.section-title{
+    text-align:center;
+    margin-bottom:35px;
+}
+
+.section-title h2{
+    color:var(--navy);
+    font-size:30px;
+}
+
+body.dark .section-title h2{color:var(--gold);}
+
+.section-title h2::after{
+    content:"";
+    width:85px;
+    height:4px;
+    background:var(--gold);
+    display:block;
+    margin:12px auto;
+    border-radius:10px;
+}
+
+.stat-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:24px;
+    margin-top:-45px;
+    position:relative;
+    z-index:2;
+}
+
+.stat-card{
+    background:var(--card);
+    border-top:5px solid var(--gold);
+    border-radius:18px;
+    padding:28px;
+    text-align:center;
+    box-shadow:0 8px 25px rgba(0,0,0,.12);
+}
+
+.stat-card i{
+    font-size:38px;
+    color:var(--gold);
+    margin-bottom:10px;
+}
+
+.stat-card h3{
+    font-size:42px;
+    color:var(--navy);
+}
+
+body.dark .stat-card h3{color:var(--gold);}
+
+.main-grid{
+    display:grid;
+    grid-template-columns:330px 1fr;
+    gap:25px;
+}
+
+.panel,.map-box,.chart-box,.profile,.data-dashboard{
+    background:var(--card);
+    border-radius:18px;
+    box-shadow:0 8px 25px rgba(0,0,0,.10);
+}
+
+.panel{
+    padding:25px;
+    border-left:5px solid var(--gold);
+}
+
+.panel h3{
+    color:var(--navy);
+    margin-bottom:12px;
+}
+
+body.dark .panel h3{color:var(--gold);}
+
+.panel p,.panel li{
+    line-height:1.8;
+    color:var(--muted);
+}
+
+.panel ul{
+    padding-left:22px;
+    margin-bottom:18px;
+}
+
+.map-box{
+    padding:12px;
+    border:2px solid #e6cf83;
+}
+
+.map-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 8px 16px;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.map-top h3{color:var(--navy);}
+body.dark .map-top h3{color:var(--gold);}
+
+.full-btn{
+    background:var(--navy);
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:20px;
+    cursor:pointer;
+}
+
+.map-box iframe{
+    width:100%;
+    height:650px;
+    border:0;
+    border-radius:12px;
+}
+
+#closeFullscreen{
+    position:fixed;
+    top:20px;
+    right:20px;
+    width:52px;
+    height:52px;
+    background:var(--gold);
+    color:#062b5f;
+    border-radius:50%;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    font-weight:bold;
+    cursor:pointer;
+    z-index:99999;
+    box-shadow:0 4px 15px rgba(0,0,0,.3);
+}
+
+.data-dashboard{
+    padding:30px;
+}
+
+.search-box{
+    max-width:700px;
+    margin:0 auto 30px;
+    position:relative;
+}
+
+.search-box input{
+    width:100%;
+    padding:16px 20px 16px 50px;
+    border:2px solid var(--gold);
+    border-radius:40px;
+    outline:none;
+    background:var(--card);
+    color:var(--text);
+    font-size:16px;
+    box-shadow:0 5px 18px rgba(0,0,0,.08);
+}
+
+.search-box i{
+    position:absolute;
+    left:20px;
+    top:18px;
+    color:var(--gold);
+}
+
+.data-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:18px;
+}
+
+.data-card{
+    background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(245,247,251,.96));
+    border:1px solid rgba(212,175,55,.45);
+    border-left:5px solid var(--gold);
+    padding:18px;
+    border-radius:16px;
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+    transition:.25s;
+}
+
+body.dark .data-card{
+    background:#243044;
+}
+
+.data-card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 10px 24px rgba(0,0,0,.12);
+}
+
+.data-icon{
+    width:45px;
+    height:45px;
+    background:var(--navy);
+    color:var(--gold);
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+
+.data-card h3{
+    font-size:17px;
+    color:var(--navy);
+    margin-bottom:7px;
+}
+
+body.dark .data-card h3{color:var(--gold);}
+
+.data-card p{
+    color:var(--muted);
+    font-size:14px;
+}
+
+.data-card .tag{
+    display:inline-block;
+    margin-top:9px;
+    background:rgba(212,175,55,.18);
+    color:#8a6a00;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:700;
+}
+
+body.dark .data-card .tag{
+    color:#ffe8a3;
+}
+
+.empty{
+    display:none;
+    text-align:center;
+    padding:25px;
+    color:var(--muted);
+}
+
+.chart-box{
+    padding:25px;
+    max-width:900px;
+    margin:auto;
+}
+
+.profile{
+    max-width:540px;
+    margin:auto;
+    padding:35px;
+    text-align:center;
+    border-top:5px solid var(--gold);
+}
+
+.profile img{
+    width:95px;
+    height:95px;
+    object-fit:contain;
+    background:white;
+    padding:10px;
+    border-radius:50%;
+    margin-bottom:15px;
+}
+
+.profile h3{
+    color:var(--navy);
+    font-size:24px;
+}
+
+body.dark .profile h3{color:var(--gold);}
+
+footer{
+    background:#061f46;
+    color:white;
+    text-align:center;
+    padding:28px;
+    border-top:4px solid var(--gold);
+}
+
+footer h3{
+    color:#ffe8a3;
+    margin-bottom:8px;
+}
+
+.back-top{
+    position:fixed;
+    right:22px;
+    bottom:22px;
+    background:var(--gold);
+    color:#062b5f;
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    font-weight:bold;
+    box-shadow:0 4px 15px rgba(0,0,0,.25);
+}
+
+
+
+/* MODAL DETAIL PUSKESMAS */
+.modal{
+    display:none;
+    position:fixed;
+    z-index:99999;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    background:rgba(2, 6, 23, .72);
+    backdrop-filter:blur(5px);
+    padding:24px;
+    overflow:auto;
+}
+
+.modal-content{
+    width:95%;
+    max-width:760px;
+    margin:45px auto;
+    background:var(--card);
+    color:var(--text);
+    border-radius:24px;
+    overflow:hidden;
+    border:1px solid rgba(212,175,55,.6);
+    box-shadow:0 25px 70px rgba(0,0,0,.35);
+    animation:modalPop .25s ease;
+}
+
+@keyframes modalPop{
+    from{transform:translateY(25px) scale(.96);opacity:0;}
+    to{transform:translateY(0) scale(1);opacity:1;}
+}
+
+.modal-header{
+    background:linear-gradient(135deg,var(--navy),var(--blue));
+    color:white;
+    padding:26px 30px;
+    border-bottom:5px solid var(--gold);
+    position:relative;
+}
+
+.modal-header h2{
+    font-size:28px;
+    margin-bottom:8px;
+    padding-right:45px;
+}
+
+.modal-header p{
+    color:#ffe8a3;
+}
+
+.close-modal{
+    position:absolute;
+    top:18px;
+    right:22px;
+    width:42px;
+    height:42px;
+    background:var(--gold);
+    color:#062b5f;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.modal-body{
+    padding:28px 30px;
+}
+
+.detail-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:16px;
+    margin-bottom:24px;
+}
+
+.detail-item{
+    background:rgba(212,175,55,.10);
+    border:1px solid rgba(212,175,55,.35);
+    border-radius:16px;
+    padding:16px;
+    display:flex;
+    gap:13px;
+    align-items:flex-start;
+}
+
+.detail-item i{
+    color:var(--gold);
+    font-size:20px;
+    margin-top:3px;
+}
+
+.detail-item small{
+    display:block;
+    color:var(--muted);
+    margin-bottom:4px;
+}
+
+.detail-item strong{
+    color:var(--text);
+}
+
+.layanan-box{
+    background:linear-gradient(135deg,rgba(212,175,55,.15),rgba(11,78,162,.08));
+    border-left:5px solid var(--gold);
+    border-radius:18px;
+    padding:20px;
+    margin-top:15px;
+}
+
+.layanan-box h3{
+    color:var(--navy);
+    margin-bottom:12px;
+}
+
+body.dark .layanan-box h3{color:var(--gold);}
+
+.layanan-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:12px;
+}
+
+.layanan-list span{
+    background:var(--navy);
+    color:white;
+    padding:8px 13px;
+    border-radius:20px;
+    font-size:13px;
+}
+
+.modal-note{
+    margin-top:18px;
+    color:var(--muted);
+    line-height:1.7;
+}
+
+.detail-actions{
+    margin-top:24px;
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.detail-btn{
+    border:none;
+    padding:12px 18px;
+    border-radius:24px;
+    cursor:pointer;
+    font-weight:700;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+}
+
+.detail-btn.gold{
+    background:var(--gold);
+    color:#062b5f;
+}
+
+.detail-btn.navy{
+    background:var(--navy);
+    color:white;
+}
+
+@media(max-width:900px){
+    header{
+        flex-direction:column;
+        gap:14px;
+    }
+
+    nav{text-align:center;}
+
+    nav a{
+        display:inline-block;
+        margin:5px 8px;
+    }
+
+    .hero h1{font-size:34px;}
+
+    .main-grid{grid-template-columns:1fr;}
+
+    .map-box iframe{height:520px;}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">
+        <img src="ikon_puskesmas.png" alt="Logo Puskesmas">
+        <div>WebGIS <span>Puskesmas</span></div>
+    </div>
+
+    <nav>
+        <a href="#beranda">Beranda</a>
+        <a href="#peta">Peta</a>
+        <a href="#data">Data</a>
+        <a href="#grafik">Grafik</a>
+        <a href="#pembuat">Pembuat</a>
+        <button class="mode-btn" onclick="toggleMode()">🌙 Dark</button>
+    </nav>
+</header>
+
+<section class="hero" id="beranda">
+    <div class="badge">Sistem Informasi Geografis Fasilitas Kesehatan</div>
+
+    <h1>WebGIS Sebaran Puskesmas Kota Pekanbaru</h1>
+
+    <p>
+        Website ini menyajikan informasi persebaran lokasi puskesmas di Kota Pekanbaru
+        secara interaktif. Pengguna dapat melihat titik lokasi puskesmas, nama puskesmas,
+        serta kecamatan tempat puskesmas berada melalui peta digital berbasis WebGIS.
+    </p>
+
+    <div class="clock" id="clock"></div>
+
+    <a href="#peta" class="btn">
+        <i class="fa-solid fa-map-location-dot"></i> Lihat Peta Interaktif
+    </a>
+</section>
+
+<section class="section">
+    <div class="stat-grid">
+        <div class="stat-card">
+            <i class="fa-solid fa-hospital"></i>
+            <h3 class="counter" data-target="20">0</h3>
+            <p>Puskesmas</p>
+        </div>
+
+        <div class="stat-card">
+            <i class="fa-solid fa-location-dot"></i>
+            <h3 class="counter" data-target="12">0</h3>
+            <p>Kecamatan</p>
+        </div>
+
+        <div class="stat-card">
+            <i class="fa-solid fa-map"></i>
+            <h3 class="counter" data-target="1">0</h3>
+            <p>Kota Pekanbaru</p>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="peta">
+    <div class="section-title">
+        <h2>Peta Sebaran Puskesmas</h2>
+        <p>Peta interaktif hasil pemetaan menggunakan QGIS dan QGIS2Web</p>
+    </div>
+
+    <div class="main-grid">
+        <div class="panel">
+            <h3>Tentang Sistem</h3>
+            <p>
+                WebGIS ini digunakan untuk menampilkan lokasi puskesmas secara visual
+                dan interaktif. Setiap titik pada peta menunjukkan puskesmas yang berada
+                di wilayah Kota Pekanbaru.
+            </p>
+
+            <h3>Informasi Peta</h3>
+            <ul>
+                <li>Nama puskesmas</li>
+                <li>Kecamatan lokasi puskesmas</li>
+                <li>Marker lokasi puskesmas</li>
+                <li>Popup informasi saat marker diklik</li>
+                <li>Basemap OpenStreetMap</li>
+            </ul>
+
+            <h3>Petunjuk Penggunaan</h3>
+            <p>
+                Klik ikon puskesmas pada peta untuk melihat informasi nama dan kecamatan.
+                Gunakan tombol zoom untuk memperbesar atau memperkecil tampilan peta.
+            </p>
+        </div>
+
+        <div class="map-box" id="mapContainer">
+            <div class="map-top">
+                <h3><i class="fa-solid fa-map-location-dot"></i> Peta Interaktif</h3>
+                <button class="full-btn" onclick="fullscreenMap()">
+                    <i class="fa-solid fa-expand"></i> Fullscreen
+                </button>
+            </div>
+
+            <iframe src="peta.html"></iframe>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="data">
+    <div class="section-title">
+        <h2>Direktori Puskesmas</h2>
+        <p>Daftar puskesmas yang digunakan pada WebGIS Kota Pekanbaru</p>
+    </div>
+
+    <div class="data-dashboard">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Cari nama puskesmas atau kecamatan..." onkeyup="searchCards()">
+        </div>
+
+        <div class="empty" id="emptyMessage">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            Data tidak ditemukan.
+        </div>
+
+        <div class="data-grid" id="dataGrid">
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Garuda')" style="cursor:pointer;" data-keyword="puskesmas garuda marpoyan damai">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Garuda</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Marpoyan Damai</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Harapan Raya')" style="cursor:pointer;" data-keyword="puskesmas harapan raya bukit raya">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Harapan Raya</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Bukit Raya</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Karya Wanita')" style="cursor:pointer;" data-keyword="puskesmas karya wanita rumbai pesisir">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Karya Wanita</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Rumbai Pesisir</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Langsat')" style="cursor:pointer;" data-keyword="puskesmas langsat sukajadi">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Langsat</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Sukajadi</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Lima Puluh')" style="cursor:pointer;" data-keyword="puskesmas lima puluh limapuluh">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Lima Puluh</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Limapuluh</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Melur')" style="cursor:pointer;" data-keyword="puskesmas melur sukajadi">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Melur</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Sukajadi</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Muara Fajar')" style="cursor:pointer;" data-keyword="puskesmas muara fajar rumbai pesisir">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Muara Fajar</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Rumbai Pesisir</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Payung Sekaki')" style="cursor:pointer;" data-keyword="puskesmas payung sekaki payung sekaki">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Payung Sekaki</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Payung Sekaki</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Pekanbaru Kota')" style="cursor:pointer;" data-keyword="puskesmas pekanbaru kota pekanbaru kota">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Pekanbaru Kota</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Pekanbaru Kota</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Rejosari')" style="cursor:pointer;" data-keyword="puskesmas rejosari tenayan raya">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Rejosari</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Tenayan Raya</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas RI Sidomulyo')" style="cursor:pointer;" data-keyword="puskesmas ri sidomulyo tampan">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas RI Sidomulyo</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Tampan</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Rumbai')" style="cursor:pointer;" data-keyword="puskesmas rumbai rumbai pesisir">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Rumbai</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Rumbai Pesisir</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Rumbai Bukit')" style="cursor:pointer;" data-keyword="puskesmas rumbai bukit rumbai">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Rumbai Bukit</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Rumbai</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Sail')" style="cursor:pointer;" data-keyword="puskesmas sail sail">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Sail</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Sail</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Senapelan')" style="cursor:pointer;" data-keyword="puskesmas senapelan senapelan">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Senapelan</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Senapelan</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas RJ Sidomulyo')" style="cursor:pointer;" data-keyword="puskesmas rj sidomulyo tampan">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas RJ Sidomulyo</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Tampan</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Simpang Baru')" style="cursor:pointer;" data-keyword="puskesmas simpang baru tampan">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Simpang Baru</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Tampan</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Simpang Tiga')" style="cursor:pointer;" data-keyword="puskesmas simpang tiga marpoyan damai">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Simpang Tiga</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Marpoyan Damai</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Tenayan Raya')" style="cursor:pointer;" data-keyword="puskesmas tenayan raya tenayan raya">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Tenayan Raya</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Tenayan Raya</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+            <div class="data-card" onclick="tampilDetail('Puskesmas Umban Sari')" style="cursor:pointer;" data-keyword="puskesmas umban sari rumbai">
+                <div class="data-icon"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                    <h3>Puskesmas Umban Sari</h3>
+                    <p><i class="fa-solid fa-location-dot"></i> Rumbai</p>
+                    <span class="tag">Fasilitas Kesehatan</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="section" id="grafik">
+    <div class="section-title">
+        <h2>Grafik Sebaran Data</h2>
+        <p>Visualisasi jumlah puskesmas berdasarkan kecamatan</p>
+    </div>
+
+    <div class="chart-box">
+        <canvas id="puskesmasChart"></canvas>
+    </div>
+</section>
+
+<section class="section" id="pembuat">
+    <div class="section-title">
+        <h2>Pembuat Website</h2>
+    </div>
+
+    <div class="profile">
+        <img src="ikon_puskesmas.png" alt="Logo Puskesmas">
+        <h3>Dinda Azura</h3>
+        <h3>Grace Vidensia</h3>
+        <h3>Najwa Salsabila</h3>
+        <h3>Nazilah R Adhar</h3><br>
+        <p>
+            Mahasiswa D3 Manajemen Informatika<br>
+            Fakultas Matematika dan Ilmu Pengetahuan Alam<br>
+            Universitas Riau
+        </p>
+    </div>
+</section>
+
+<footer>
+    <h3>WebGIS Sebaran Puskesmas Kota Pekanbaru</h3>
+    <p>© 2026 - Dibuat menggunakan QGIS, QGIS2Web, Leaflet, HTML, CSS, JavaScript, dan Chart.js</p>
+</footer>
+
+
+
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close-modal" onclick="tutupDetail()">&times;</span>
+            <h2 id="modalNama">Puskesmas</h2>
+            <p id="modalSubjudul">Informasi Detail Puskesmas</p>
+        </div>
+
+        <div class="modal-body">
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <div>
+                        <small>Alamat / Lokasi</small>
+                        <strong id="modalAlamat"></strong>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <div>
+                        <small>Kecamatan</small>
+                        <strong id="modalKecamatan"></strong>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <i class="fa-solid fa-clock"></i>
+                    <div>
+                        <small>Jam Operasional</small>
+                        <strong id="modalJam"></strong>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <i class="fa-solid fa-phone"></i>
+                    <div>
+                        <small>Kontak</small>
+                        <strong id="modalTelepon"></strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layanan-box">
+                <h3><i class="fa-solid fa-stethoscope"></i> Layanan Kesehatan</h3>
+                <p id="modalDeskripsi"></p>
+                <div class="layanan-list" id="modalLayanan"></div>
+            </div>
+
+            <p class="modal-note">
+                Catatan: informasi alamat dan kontak dapat disesuaikan kembali apabila tersedia data resmi terbaru dari puskesmas terkait.
+            </p>
+
+            <div class="detail-actions">
+                <a id="modalMaps" class="detail-btn gold" target="_blank">
+                    <i class="fa-solid fa-map"></i> Lihat di Google Maps
+                </a>
+                <button class="detail-btn navy" onclick="tutupDetail()">
+                    <i class="fa-solid fa-xmark"></i> Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a href="#beranda" class="back-top">
+    <i class="fa-solid fa-arrow-up"></i>
+</a>
+
+<div id="closeFullscreen" onclick="closeFullscreen()">×</div>
+
+<script>
+function updateClock(){
+    const now = new Date();
+    const date = now.toLocaleDateString('id-ID', {
+        weekday:'long',
+        day:'numeric',
+        month:'long',
+        year:'numeric'
+    });
+    const time = now.toLocaleTimeString('id-ID');
+
+    document.getElementById("clock").innerHTML =
+    '<i class="fa-regular fa-clock"></i> ' + date + ' | ' + time;
+}
+setInterval(updateClock,1000);
+updateClock();
+
+function toggleMode(){
+    document.body.classList.toggle("dark");
+    const btn = document.querySelector(".mode-btn");
+
+    if(document.body.classList.contains("dark")){
+        btn.innerHTML = "☀️ Light";
+    }else{
+        btn.innerHTML = "🌙 Dark";
+    }
+}
+
+function fullscreenMap(){
+    const mapBox = document.getElementById("mapContainer");
+
+    if(mapBox.requestFullscreen){
+        mapBox.requestFullscreen();
+    }
+
+    document.getElementById("closeFullscreen").style.display = "flex";
+}
+
+function closeFullscreen(){
+    if(document.fullscreenElement){
+        document.exitFullscreen();
+    }
+
+    document.getElementById("closeFullscreen").style.display = "none";
+}
+
+document.addEventListener("fullscreenchange", function(){
+    if(!document.fullscreenElement){
+        document.getElementById("closeFullscreen").style.display = "none";
+    }
+});
+
+const counters = document.querySelectorAll('.counter');
+
+counters.forEach(counter => {
+    const target = +counter.getAttribute('data-target');
+    let count = 0;
+    const speed = target < 5 ? 100 : 35;
+
+    const update = () => {
+        if(count < target){
+            count++;
+            counter.innerText = count;
+            setTimeout(update, speed);
+        }else{
+            counter.innerText = target;
+        }
+    };
+
+    update();
+});
+
+function searchCards(){
+    const input = document.getElementById("searchInput").value.toLowerCase();
+    const cards = document.querySelectorAll(".data-card");
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+        const keyword = card.getAttribute("data-keyword").toLowerCase();
+
+        if(keyword.includes(input)){
+            card.style.display = "flex";
+            visibleCount++;
+        }else{
+            card.style.display = "none";
+        }
+    });
+
+    document.getElementById("emptyMessage").style.display =
+    visibleCount === 0 ? "block" : "none";
+}
+
+
+const detailPuskesmas = {
+    "Puskesmas Garuda": {
+        kecamatan: "Marpoyan Damai",
+        alamat: "Jl. Garuda No.12A, Tangkerang Tengah, Kec. Marpoyan Damai, Kota Pekanbaru, Riau 28125",
+        telepon: "(0761)7874769",
+        jam: "Senin - Jumat, 08.00 - 14.30 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Pelayanan Kesehatan Dasar"],
+        deskripsi: "Puskesmas Garuda merupakan fasilitas kesehatan tingkat pertama yang melayani masyarakat di wilayah Kecamatan Marpoyan Damai.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Garuda+Pekanbaru"
+    },
+    "Puskesmas Harapan Raya": {
+        kecamatan: "Bukit Raya",
+        alamat: "Jl. Imam Munandar No.40, Tengkerang Sel., Kec. Bukit Raya, Kota Pekanbaru, Riau 28128",
+        telepon: "Belum tersedia",
+        jam: "Senin - Jumat, 07.30 - 16.00 WIB",
+        layanan: ["Poli Umum", "Imunisasi", "KIA", "Konsultasi Kesehatan"],
+        deskripsi: "Puskesmas Harapan Raya melayani kebutuhan kesehatan dasar masyarakat di wilayah Kecamatan Bukit Raya.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Harapan+Raya+Pekanbaru"
+    },
+    "Puskesmas Karya Wanita": {
+        kecamatan: "Rumbai Pesisir",
+        alamat: "Jl. Gabus Raya No.3, Limbungan Baru, Kec. Rumbai Pesisir, Kota Pekanbaru, Riau 28266",
+        telepon: "(0761)53126",
+        jam: "Senin - Jumat, 08.00 - 12.00 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Penyuluhan Kesehatan"],
+        deskripsi: "Puskesmas Karya Wanita merupakan salah satu fasilitas kesehatan yang berada di kawasan Rumbai Pesisir.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Karya+Wanita+Pekanbaru"
+    },
+    "Puskesmas Langsat": {
+        kecamatan: "Sukajadi",
+        alamat: "Jl. Langsat No.1, Jadirejo, Kec. Sukajadi, Kota Pekanbaru, Riau 28121",
+        telepon: "(0761)21051",
+        jam: "Senin - Jumat, 08.00 - 15.00 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Pelayanan Kesehatan Dasar"],
+        deskripsi: "Puskesmas Langsat memberikan layanan kesehatan masyarakat di wilayah Kecamatan Sukajadi.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Langsat+Pekanbaru"
+    },
+    "Puskesmas Lima Puluh": {
+        kecamatan: "Limapuluh",
+        alamat: "Jl. Sumber Sari No.15, Tj. Rhu, Kec. Lima Puluh, Kota Pekanbaru, Riau 28151",
+        telepon: "(0761)36436",
+        jam: "Senin - Jumat, 08.00 - 16.00 WIB",
+        layanan: ["Poli Umum", "Imunisasi", "KIA", "Pelayanan Dasar"],
+        deskripsi: "Puskesmas Lima Puluh melayani masyarakat pada wilayah Kecamatan Limapuluh dan sekitarnya.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Lima+Puluh+Pekanbaru"
+    },
+    "Puskesmas Melur": {
+        kecamatan: "Sukajadi",
+        alamat: "Jl. Melur No.103, Harjosari, Kec. Sukajadi, Kota Pekanbaru, Riau 28156",
+        telepon: "(0761)22508",
+        jam: "Senin - Jumat, 07.30 - 14.30 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Pelayanan Masyarakat"],
+        deskripsi: "Puskesmas Melur merupakan fasilitas pelayanan kesehatan dasar di Kecamatan Sukajadi.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Melur+Pekanbaru"
+    },
+    "Puskesmas Muara Fajar": {
+        kecamatan: "Rumbai Pesisir",
+        alamat: "Jl. Yos Sudarso, Muara Fajar, Kec. Rumbai, Kota Pekanbaru, Riau 28264",
+        telepon: "Belum tersedia",
+        jam: "Senin - Jumat, 08.00 - 16.00 WIB",
+        layanan: ["Poli Umum", "Imunisasi", "KIA", "Penyuluhan Kesehatan"],
+        deskripsi: "Puskesmas Muara Fajar melayani masyarakat di wilayah Rumbai Pesisir bagian utara.",
+        maps: "https://maps.app.goo.gl/G9xE7HGfr2ZGn8fr6"
+    },
+    "Puskesmas Payung Sekaki": {
+        kecamatan: "Payung Sekaki",
+        alamat: "Jl. Fajar No.21, Labuh Baru Bar., Kec. Payung Sekaki, Kota Pekanbaru, Riau 28292",
+        telepon: "(0761)62563",
+        jam: "Senin - Jumat, 08.00 - 16.00 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Kesehatan Lingkungan"],
+        deskripsi: "Puskesmas Payung Sekaki memberikan pelayanan kesehatan dasar untuk masyarakat Kecamatan Payung Sekaki.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Payung+Sekaki+Pekanbaru"
+    },
+    "Puskesmas Pekanbaru Kota": {
+        kecamatan: "Pekanbaru Kota",
+        alamat: "Jl. Teuku Umar No.68, Kota Tinggi, Kec. Pekanbaru Kota, Kota Pekanbaru, Riau 28155",
+        telepon: "085363393934",
+        jam: "Senin - Jumat, 08.00 - 21.00 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Pelayanan Kesehatan Dasar"],
+        deskripsi: "Puskesmas Pekanbaru Kota berada pada kawasan pusat Kota Pekanbaru dan melayani kebutuhan kesehatan masyarakat sekitar.",
+        maps: "https://maps.app.goo.gl/yWuHMK6Tr559bkyZ8"
+    },
+    "Puskesmas Rejosari": {
+        kecamatan: "Tenayan Raya",
+        alamat: "Jl. Utama, Rejosari, Kec. Tenayan Raya, Kota Pekanbaru, Riau 28141",
+        telepon: "(0761)42956",
+        jam: "Senin - Jumat, 08.00 - 14.30 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Pelayanan Dasar"],
+        deskripsi: "Puskesmas Rejosari merupakan fasilitas kesehatan yang melayani wilayah Tenayan Raya.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Rejosari+Pekanbaru"
+    },
+    "Puskesmas RI Sidomulyo": {
+        kecamatan: "Tampan",
+        alamat: "Jl. Garuda, Delima, Kec. Tampan, Kota Pekanbaru, Riau 28292",
+        telepon: "Belum tersedia",
+        jam: "24 jam",
+        layanan: ["Rawat Inap", "Poli Umum", "KIA", "Imunisasi"],
+        deskripsi: "Puskesmas RI Sidomulyo merupakan puskesmas dengan layanan rawat inap pada wilayah Kecamatan Tampan.",
+        maps: "https://www.google.com/maps/search/Puskesmas+RI+Sidomulyo+Pekanbaru"
+    },
+    "Puskesmas Rumbai": {
+        kecamatan: "Rumbai Pesisir",
+        alamat: "Jl. Kayangan No.52, Meranti Pandak, Kec. Rumbai Pesisir, Kota Pekanbaru, Riau 28266",
+        telepon: "(0761)53537",
+        jam: "Senin - Jumat, 08.00 - 14.00 WIB",
+        layanan: ["Poli Umum", "Imunisasi", "KIA", "Pelayanan Dasar"],
+        deskripsi: "Puskesmas Rumbai melayani kebutuhan kesehatan masyarakat di wilayah Rumbai Pesisir.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Rumbai+Pekanbaru"
+    },
+    "Puskesmas Rumbai Bukit": {
+        kecamatan: "Rumbai",
+        alamat: "JL.Rumbai Bukit, Rumbai, Pekanbaru City, Riau 28264",
+        telepon: "Belum tersedia",
+        jam: "Senin - Jumat, 08.00 - 16.00 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Pelayanan Dasar"],
+        deskripsi: "Puskesmas Rumbai Bukit merupakan fasilitas kesehatan masyarakat di wilayah Kecamatan Rumbai.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Rumbai+Bukit+Pekanbaru"
+    },
+    "Puskesmas Sail": {
+        kecamatan: "Sail",
+        alamat: "Jl. Hang Jebat No.15, Suka Mulia, Kec. Sail, Kota Pekanbaru, Riau 28114",
+        telepon: "085956730737",
+        jam: "Senin - Jumat, 08.00 - 14.00 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Pelayanan Kesehatan Dasar"],
+        deskripsi: "Puskesmas Sail memberikan layanan kesehatan dasar bagi masyarakat Kecamatan Sail.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Sail+Pekanbaru"
+    },
+    "Puskesmas Senapelan": {
+        kecamatan: "Senapelan",
+        alamat: "Jl. Jati, Kp. Baru, Kec. Senapelan, Kota Pekanbaru, Riau 28155",
+        telepon: "076124707",
+        jam: "Senin - Jumat, 08.00 - 21.00 WIB",
+        layanan: ["Poli Umum", "Imunisasi", "KIA", "Pelayanan Dasar"],
+        deskripsi: "Puskesmas Senapelan melayani masyarakat di kawasan Kecamatan Senapelan.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Senapelan+Pekanbaru"
+    },
+    "Puskesmas RJ Sidomulyo": {
+        kecamatan: "Tampan",
+        alamat: "Jl. HR. Soebrantas No.Km.10, RW.5, Delima, Kec. Tampan, Kota Pekanbaru, Riau 28293",
+        telepon: "076163170",
+        jam: "Senin - Jumat, 08.00 - 14.00 WIB",
+        layanan: ["Rawat Jalan", "Poli Umum", "KIA", "Imunisasi"],
+        deskripsi: "Puskesmas RJ Sidomulyo merupakan puskesmas rawat jalan yang melayani masyarakat Kecamatan Tampan.",
+        maps: "https://www.google.com/maps/search/Puskesmas+RJ+Sidomulyo+Pekanbaru"
+    },
+    "Puskesmas Simpang Baru": {
+        kecamatan: "Tampan",
+        alamat: "Jl. Kamboja No.100, Simpang Baru, Kec. Tampan, Kota Pekanbaru, Riau 28292",
+        telepon: "Belum tersedia",
+        jam: "Senin - Jumat, 08.00 - 21.00 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Pelayanan Dasar"],
+        deskripsi: "Puskesmas Simpang Baru melayani wilayah Kecamatan Tampan dan sekitarnya.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Simpang+Baru+Pekanbaru"
+    },
+    "Puskesmas Simpang Tiga": {
+        kecamatan: "Marpoyan Damai",
+        alamat: "Jl. Kaharuddin Nst No.46, Perhentian Marpoyan, Kec. Marpoyan Damai, Kota Pekanbaru, Riau 28288",
+        telepon: "0761674763",
+        jam: "Senin - Jumat, 08.00 - 16.00 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Konsultasi Kesehatan"],
+        deskripsi: "Puskesmas Simpang Tiga merupakan fasilitas kesehatan di wilayah Kecamatan Marpoyan Damai.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Simpang+Tiga+Pekanbaru"
+    },
+    "Puskesmas Tenayan Raya": {
+        kecamatan: "Tenayan Raya",
+        alamat: "Jl. Budi Luhur, Kulim, Kec. Tenayan Raya, Kota Pekanbaru, Riau 28285",
+        telepon: "07617870748",
+        jam: "Senin - Jumat, 08.00 - 21.00 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Pelayanan Kesehatan Dasar"],
+        deskripsi: "Puskesmas Tenayan Raya memberikan pelayanan kesehatan untuk masyarakat Kecamatan Tenayan Raya.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Tenayan+Raya+Pekanbaru"
+    },
+    "Puskesmas Umban Sari": {
+        kecamatan: "Rumbai",
+        alamat: "Jl. Purnama Sari No.1, Umban Sari, Kec. Rumbai, Kota Pekanbaru, Riau 28266",
+        telepon: "076151764",
+        jam: "Senin - Jumat, 08.00 - 21.00 WIB",
+        layanan: ["Poli Umum", "KIA", "Imunisasi", "Pelayanan Dasar"],
+        deskripsi: "Puskesmas Umban Sari merupakan salah satu fasilitas kesehatan di wilayah Kecamatan Rumbai.",
+        maps: "https://www.google.com/maps/search/Puskesmas+Umban+Sari+Pekanbaru"
+    }
+};
+
+function tampilDetail(nama){
+    const data = detailPuskesmas[nama];
+    if(!data){
+        alert("Detail puskesmas belum tersedia.");
+        return;
+    }
+
+    document.getElementById("modalNama").innerText = nama;
+    document.getElementById("modalSubjudul").innerText = "Informasi fasilitas kesehatan di Kecamatan " + data.kecamatan;
+    document.getElementById("modalAlamat").innerText = data.alamat;
+    document.getElementById("modalKecamatan").innerText = data.kecamatan;
+    document.getElementById("modalTelepon").innerText = data.telepon;
+    document.getElementById("modalJam").innerText = data.jam;
+    document.getElementById("modalDeskripsi").innerText = data.deskripsi;
+    document.getElementById("modalMaps").href = data.maps;
+
+    const layanan = document.getElementById("modalLayanan");
+    layanan.innerHTML = "";
+    data.layanan.forEach(item => {
+        const span = document.createElement("span");
+        span.innerText = item;
+        layanan.appendChild(span);
+    });
+
+    document.getElementById("detailModal").style.display = "block";
+}
+
+function tutupDetail(){
+    document.getElementById("detailModal").style.display = "none";
+}
+
+window.onclick = function(event){
+    const modal = document.getElementById("detailModal");
+    if(event.target === modal){
+        tutupDetail();
+    }
+};
+
+
+const ctx = document.getElementById('puskesmasChart');
+
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [
+            'Tampan',
+            'Rumbai Pesisir',
+            'Marpoyan Damai',
+            'Sukajadi',
+            'Tenayan Raya',
+            'Rumbai',
+            'Lainnya'
+        ],
+        datasets: [{
+            label: 'Jumlah Puskesmas',
+            data: [3, 3, 2, 2, 2, 2, 6],
+            backgroundColor: [
+                '#d4af37',
+                '#0b4ea2',
+                '#d4af37',
+                '#0b4ea2',
+                '#d4af37',
+                '#0b4ea2',
+                '#d4af37'
+            ],
+            borderRadius: 8
+        }]
+    },
+    options: {
+        responsive:true,
+        plugins:{
+            legend:{display:true}
+        },
+        scales:{
+            y:{
+                beginAtZero:true,
+                ticks:{stepSize:1}
+            }
+        }
+    }
+});
+</script>
+
+</body>
+</html>
